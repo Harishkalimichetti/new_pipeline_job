@@ -193,6 +193,18 @@ modlist:
   sample: '[[2, "olcRootDN", ["cn=root,dc=example,dc=com"]]]'
 """
 
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.pycompat24 import get_exception
+import json
+
+try:
+    import ldap
+    import ldap.ssl
+
+    HAS_LDAP = True
+except ImportError:
+    HAS_LDAP = False
+
 
 class LdapAttr(object):
     def __init__(self, module):
@@ -205,6 +217,7 @@ class LdapAttr(object):
         self.server_uri = self.module.params['server_uri']
         self.start_tls = self.module.params['start_tls']
         self.state = self.module.params['state']
+        self.verify_cert = self.module.params['validate_certs']
 
         # Normalize values
         if isinstance(self.module.params['values'], list):
@@ -273,6 +286,9 @@ class LdapAttr(object):
         return not self._is_value_present(value)
 
     def _connect_to_ldap(self):
+        if not self.verify_cert:
+            ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
+          
         connection = ldap.initialize(self.server_uri)
 
         if self.start_tls:
@@ -309,6 +325,7 @@ def main():
                 default='present',
                 choices=['present', 'absent', 'exact']),
             'values': dict(required=True, type='raw'),
+            'validate_certs': dict(default=True, type='bool'),
         },
         supports_check_mode=True,
     )
