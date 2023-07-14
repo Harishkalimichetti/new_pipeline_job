@@ -229,7 +229,8 @@ class LdapAttr(object):
         self.connection = self._connect_to_ldap()
 
     def add(self):
-        values_to_add = filter(self._is_value_absent, self.values)
+        values_to_add = list(filter(self._is_value_absent, [value.encode(
+                  'utf-8' for value in self.values]))
 
         if len(values_to_add) > 0:
             modlist = [(ldap.MOD_ADD, self.name, values_to_add)]
@@ -239,7 +240,8 @@ class LdapAttr(object):
         return modlist
 
     def delete(self):
-        values_to_delete = filter(self._is_value_present, self.values)
+        values_to_delete = filter(self._is_value_present, [value.encode(
+                  'utf-8' for value in self.values])
 
         if len(values_to_delete) > 0:
             modlist = [(ldap.MOD_DELETE, self.name, values_to_delete)]
@@ -263,11 +265,13 @@ class LdapAttr(object):
 
         if frozenset(self.values) != frozenset(current):
             if len(current) == 0:
-                modlist = [(ldap.MOD_ADD, self.name, self.values)]
+                modlist = [(ldap.MOD_ADD, self.name, [value.encode(
+                  'utf-8' for value in self.values])]
             elif len(self.values) == 0:
                 modlist = [(ldap.MOD_DELETE, self.name, None)]
             else:
-                modlist = [(ldap.MOD_REPLACE, self.name, self.values)]
+                modlist = [(ldap.MOD_REPLACE, self.name, [value.encode(
+                  'utf-8' for value in self.values])]
 
         return modlist
 
@@ -366,7 +370,7 @@ def main():
                 module.fail_json(
                     msg="Attribute action failed.", details=str(e))
 
-    module.exit_json(changed=changed, modlist=modlist)
+    module.exit_json(changed=changed, modlist=modlist, details=module.params)
 
 
 if __name__ == '__main__':
