@@ -61,7 +61,7 @@ class NetAppCDOTAdjustSnapLockRetentionPeriod(object):
     self.argument_spec.update(dict(
         volume=dict(required=True, type='str', aliases=['name']),
         vserver=dict(required=True, type='str', default=None),
-        retention_period_days=dict(required=False, type='int', default='21'),
+        retention_period_days=dict(required=False, type='int', default=21),
 
     ))
 
@@ -127,5 +127,5 @@ def main():
     v = NetAppCDOTAdjustSnapLockRetentionPeriod()
     v.apply()
 
-if __Name__ == '__main__':
+if __name__ == '__main__':
     main()
